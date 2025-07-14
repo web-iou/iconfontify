@@ -649,20 +649,18 @@ async function generateHTMLPreview() {
                     // 生成图标卡片
                     Object.entries(mapping).forEach(([iconName, iconData]) => {
                         const className = \`\${iconName}\`;
-                        const unicodeChar = String.fromCharCode(iconData.unicode);
                         
                         const iconCard = document.createElement('div');
                         iconCard.className = 'icon-card';
                         iconCard.innerHTML = \`
-                            <div class="icon-display" style="font-family: '${FONT_NAME}';">\${unicodeChar}</div>
+                            <div class="icon-display" style="font-family: '${FONT_NAME}';">\${iconData.unicode[0]}</div>
                             <div class="icon-name">\${iconName}</div>
-                            <div class="icon-unicode">\${iconData.codePoint}</div>
-                            <div class="icon-class">.\${className}</div>
+                            <div class="icon-class">\${className}</div>
                         \`;
                         
                         // 点击复制功能
                         iconCard.addEventListener('click', () => {
-                            copyToClipboard(\`.\${className}\`);
+                            copyToClipboard(\`\${className}\`);
                         });
                         
                         iconGrid.appendChild(iconCard);

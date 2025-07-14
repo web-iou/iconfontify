@@ -59,7 +59,6 @@ function getOutputDir() {
 function getFontName() {
   return process.env.ICONFONTIFY_FONT_NAME || 'iconfont';
 }
-
 async function generateFont() {
   const inputPattern = getInputPattern();
   const outputDir = getOutputDir();
@@ -100,34 +99,18 @@ async function generateFont() {
 
   // 生成文件名到Unicode point的映射
   const iconMapping = {};
-  const cssRules = [];
   
   if (result.glyphsData) {
     console.log(`✅ 处理 ${result.glyphsData.length} 个图标的Unicode映射`);
-    
     result.glyphsData.forEach((glyph, index) => {
       if (glyph && glyph.metadata) {
         const iconName = glyph.metadata.name;
         
-        // 使用私有使用区域的Unicode值（E000-F8FF），从E001开始
-        const unicodePoint = 0xE001 + index;
-        
-        console.log(`📍 ${iconName} -> U+${unicodePoint.toString(16).toUpperCase().padStart(4, '0')}`);
-        
-        if (iconName && unicodePoint) {
-          const unicodeHex = unicodePoint.toString(16).toUpperCase();
-          
+        if (iconName) {
           // 添加到映射对象
           iconMapping[iconName] = {
-            unicode: unicodePoint,
-            hex: `\\${unicodeHex}`,
-            codePoint: `U+${unicodeHex.padStart(4, '0')}`
+            unicode:glyph.metadata.unicode
           };
-          
-          // 生成CSS规则
-          cssRules.push(`.icon-${iconName}:before {
-  content: "\\${unicodeHex}";
-}`);
         }
       }
     });
