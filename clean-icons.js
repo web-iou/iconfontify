@@ -55,21 +55,6 @@ function getInputDir() {
 const svgoConfig = {
   plugins: [
     {
-      name: "preset-default",
-      params: {
-        overrides: {
-          removeViewBox: false,
-          convertShapeToPath: false, // 禁用形状转路径
-          collapseGroups: false, // 禁用组合并
-          mergePaths: false, // 禁用路径合并
-          convertTransform: false, // 禁用变换转换
-          cleanupNumericValues: {
-            floatPrecision: 3, // 提高精度
-          },
-        },
-      },
-    },
-    {
       name: "remove-rects",
       fn: () => ({
         element: {
