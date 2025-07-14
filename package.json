@@ -1,0 +1,39 @@
+{
+  "name": "iconfontify",
+  "version": "1.2.0",
+  "scripts": {},
+  "bin": {
+    "iconfontify": "bin/cli.js"
+  },
+  "keywords": [
+    "svg",
+    "clip-path",
+    "clean",
+    "svgo",
+    "icons",
+    "iconfont"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "704991100@qq.com",
+  "license": "ISC",
+  "description": "Best practices for generating Fonts from svg using webfont",
+  "dependencies": {
+    "svgo": "^3.3.2",
+    "webfont": "^11.2.26"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "bin/",
+    "clean-icons.js",
+    "generate-font.js",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/web-iou/iconfontify.git"
+  }
+}
