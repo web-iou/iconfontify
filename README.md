@@ -22,6 +22,7 @@
 - 🎨 **高质量字体生成**：支持TTF格式，保持图标清晰度
 - 📱 **完整的Unicode映射**：自动生成映射文件，支持多种使用方式
 - 🎯 **防变形优化**：专门优化的SVGO配置，防止图标变形
+- 🔄 **自定义Unicode映射**：支持通过JSON文件自定义图标的Unicode值
 - 🚀 **一键构建**：Shell脚本自动化整个构建流程
 - 📂 **灵活的目录配置**：支持自定义输入输出目录
 - 🌐 **HTML预览**：可选生成交互式预览页面
@@ -128,6 +129,8 @@ node generate-font.js
 |------|------|--------|
 | `-i <目录>` | 指定输入目录 | `icon` |
 | `-o <目录>` | 指定输出目录 | `build/iconfont` |
+| `-n <名称>` | 指定字体名称 | `iconfont` |
+| `--iconmap <文件>` | 指定图标映射JSON文件路径 | 使用-o目录下的icon-mapping.json |
 | `-h` | 生成HTML+CSS预览文件 | 关闭 |
 | `--node` | 强制使用Node.js版本（Windows推荐） | 自动检测 |
 | `--help` | 显示帮助信息 | - |
@@ -142,11 +145,20 @@ npx iconfontify
 # 指定自定义目录
 npx iconfontify -i svg-files -o fonts
 
+# 指定字体名称
+npx iconfontify -n myicons
+
+# 使用自定义图标映射文件
+npx iconfontify --iconmap icons.json
+
 # 生成预览页面
 npx iconfontify -h
 
 # Windows用户推荐方式
 npx iconfontify --node -i assets/icons -o dist/iconfont -h
+
+# 完整自定义示例
+npx iconfontify -i svg-icons -o dist/fonts -n myicons --iconmap icon-mapping.json -h
 
 # 本地项目构建
 ./bin/build-icons.sh -i assets/icons -o dist/iconfont -h
@@ -319,6 +331,49 @@ fetch('icon-mapping.json')
   });
 ```
 
+## 🔄 自定义Unicode映射
+
+### 图标映射文件格式
+
+您可以通过 `--iconmap` 参数指定一个JSON文件来自定义图标的Unicode值：
+
+```json
+{
+  "home": {
+    "unicode": "\\E001"
+  },
+  "user": {
+    "unicode": "\\E002"
+  },
+  "settings": {
+    "unicode": "\\E003"
+  }
+}
+```
+
+### 使用自定义映射
+
+```bash
+# 使用自定义图标映射文件
+npx iconfontify --iconmap my-icons.json
+
+# 结合其他参数使用
+npx iconfontify -i svg-icons -o dist/fonts --iconmap icon-mapping.json -h
+```
+
+### 映射规则
+
+- **文件名匹配**：SVG文件名必须与JSON中的key完全一致（不包含.svg扩展名）
+- **Unicode格式**：支持字符串格式的Unicode值，如 `"\\E001"`
+- **默认行为**：如果图标在映射文件中找不到，将使用自动分配的Unicode值
+- **优先级**：自定义映射的Unicode值会覆盖自动分配的值
+
+### 应用场景
+
+- **保持Unicode一致性**：在更新图标库时保持现有代码的兼容性
+- **特定Unicode分配**：为特定图标分配特定的Unicode码点
+- **版本控制**：确保不同版本的图标字体使用相同的Unicode值
+
 ## 🔧 故障排除
 
 ### 常见问题
@@ -340,6 +395,12 @@ A: 检查输入目录是否存在且包含.svg文件。
 
 **Q: Windows用户bash环境问题**
 A: 推荐使用 `--node` 参数，或安装Git for Windows获得bash环境。
+
+**Q: 自定义Unicode映射不生效**
+A: 检查SVG文件名是否与JSON中的key完全一致，确保JSON格式正确。
+
+**Q: 图标映射文件读取失败**
+A: 检查文件路径是否正确，确保JSON文件格式有效。
 
 ### 调试方法
 

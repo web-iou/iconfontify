@@ -17,6 +17,7 @@ let INPUT_DIR = 'icon';
 let OUTPUT_DIR = 'build/iconfont';
 let GENERATE_HTML = false;
 let FONT_NAME = 'iconfont';
+let ICON_MAP_PATH = null;
 
 // 显示帮助信息
 function showHelp() {
@@ -29,6 +30,7 @@ function showHelp() {
   -i <目录>    指定输入目录 (默认: icon)
   -o <目录>    指定输出目录 (默认: build/iconfont)
   -n <名称>    指定字体名称 (默认: iconfont)
+  --iconmap <文件> 指定图标映射JSON文件路径 (默认: 使用-o目录下的icon-mapping.json)
   -h           生成HTML+CSS预览文件
   --help       显示此帮助信息
   --node       强制使用Node.js版本（无需bash）
@@ -37,6 +39,7 @@ function showHelp() {
   npx iconfontify --node                    # 使用Node.js版本构建
   npx iconfontify --node -i svg-icons       # 指定输入目录
   npx iconfontify --node -n myicons         # 指定字体名称
+  npx iconfontify --node --iconmap icons.json # 使用指定的图标映射文件
   npx iconfontify --node -h                 # 生成HTML预览
 
 环境要求:
@@ -78,6 +81,15 @@ function parseArgs() {
                     i++;
                 } else {
                     console.error('❌ 错误: -n 参数需要指定字体名称');
+                    process.exit(1);
+                }
+                break;
+            case '--iconmap':
+                if (i + 1 < args.length) {
+                    ICON_MAP_PATH = args[i + 1];
+                    i++;
+                } else {
+                    console.error('❌ 错误: --iconmap 参数需要指定文件路径');
                     process.exit(1);
                 }
                 break;
@@ -261,6 +273,14 @@ function updateScriptPaths() {
     process.env.ICONFONTIFY_FONT_NAME = FONT_NAME;
     process.env.ICONFONTIFY_CWD = process.cwd();
     process.env.ICONFONTIFY_PACKAGE_ROOT = packageRoot;
+    
+    // 设置图标映射文件路径
+    if (ICON_MAP_PATH) {
+        process.env.ICONFONTIFY_ICON_MAP_PATH = ICON_MAP_PATH;
+    } else {
+        // 默认使用输出目录下的 icon-mapping.json
+        process.env.ICONFONTIFY_ICON_MAP_PATH = path.join(OUTPUT_DIR, 'icon-mapping.json');
+    }
 }
 
 // 恢复脚本
@@ -271,6 +291,7 @@ function restoreScripts() {
     delete process.env.ICONFONTIFY_FONT_NAME;
     delete process.env.ICONFONTIFY_CWD;
     delete process.env.ICONFONTIFY_PACKAGE_ROOT;
+    delete process.env.ICONFONTIFY_ICON_MAP_PATH;
 }
 
 // 执行Node.js脚本
@@ -694,6 +715,7 @@ async function main() {
         console.log(`输入目录: ${INPUT_DIR}`);
         console.log(`输出目录: ${OUTPUT_DIR}`);
         console.log(`字体名称: ${FONT_NAME}`);
+        console.log(`图标映射文件: ${ICON_MAP_PATH || path.join(OUTPUT_DIR, 'icon-mapping.json')}`);
         console.log(`生成HTML预览: ${GENERATE_HTML ? '是' : '否'}`);
         
         // 环境检查

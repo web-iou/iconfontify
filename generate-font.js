@@ -1,35 +1,44 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 // 尝试多种方式加载webfont
 let webfont;
 try {
-  webfont = require('webfont').default;
+  webfont = require("webfont").default;
 } catch (error) {
   try {
     // 尝试从脚本目录的node_modules加载
-    webfont = require(path.join(__dirname, 'node_modules', 'webfont')).default;
+    webfont = require(path.join(__dirname, "node_modules", "webfont")).default;
   } catch (error2) {
     try {
       // 尝试从上级目录的node_modules加载
-      webfont = require(path.join(__dirname, '..', 'node_modules', 'webfont')).default;
+      webfont = require(path.join(
+        __dirname,
+        "..",
+        "node_modules",
+        "webfont"
+      )).default;
     } catch (error3) {
       try {
         // 尝试从当前工作目录的node_modules加载
-        webfont = require(path.join(process.cwd(), 'node_modules', 'webfont')).default;
+        webfont = require(path.join(
+          process.cwd(),
+          "node_modules",
+          "webfont"
+        )).default;
       } catch (error4) {
         try {
           // 尝试其他导入方式
-          const webfontModule = require('webfont');
+          const webfontModule = require("webfont");
           webfont = webfontModule.default || webfontModule;
         } catch (error5) {
-          console.error('❌ 无法加载webfont依赖');
-          console.error('错误信息:', error.message);
-          console.error('');
-          console.error('解决方案:');
-          console.error('1. 检查webfont是否已安装: npm list webfont');
-          console.error('2. 重新安装依赖: npm install webfont');
-          console.error('3. 或在项目目录执行: npm install webfont');
+          console.error("❌ 无法加载webfont依赖");
+          console.error("错误信息:", error.message);
+          console.error("");
+          console.error("解决方案:");
+          console.error("1. 检查webfont是否已安装: npm list webfont");
+          console.error("2. 重新安装依赖: npm install webfont");
+          console.error("3. 或在项目目录执行: npm install webfont");
           process.exit(1);
         }
       }
@@ -41,9 +50,11 @@ try {
 function getInputPattern() {
   if (process.env.ICONFONTIFY_INPUT_DIR) {
     const cwd = process.env.ICONFONTIFY_CWD || process.cwd();
-    return path.join(cwd, process.env.ICONFONTIFY_INPUT_DIR, '*.svg').replace(/\\/g, '/');
+    return path
+      .join(cwd, process.env.ICONFONTIFY_INPUT_DIR, "*.svg")
+      .replace(/\\/g, "/");
   }
-  return 'icon/*.svg';
+  return "icon/*.svg";
 }
 
 // 获取输出目录 - 优先使用环境变量，然后使用默认值
@@ -52,34 +63,86 @@ function getOutputDir() {
     const cwd = process.env.ICONFONTIFY_CWD || process.cwd();
     return path.join(cwd, process.env.ICONFONTIFY_OUTPUT_DIR);
   }
-  return path.join(__dirname, 'build', 'iconfont');
+  return path.join(__dirname, "build", "iconfont");
 }
 
 // 获取字体名称 - 优先使用环境变量，然后使用默认值
 function getFontName() {
-  return process.env.ICONFONTIFY_FONT_NAME || 'iconfont';
+  return process.env.ICONFONTIFY_FONT_NAME || "iconfont";
+}
+
+// 获取图标映射文件路径 - 优先使用环境变量，然后使用默认值
+function getIconMapPath() {
+  if (process.env.ICONFONTIFY_ICON_MAP_PATH) {
+    const cwd = process.env.ICONFONTIFY_CWD || process.cwd();
+    return path.join(cwd, process.env.ICONFONTIFY_ICON_MAP_PATH);
+  }
+  return null;
 }
 async function generateFont() {
   const inputPattern = getInputPattern();
   const outputDir = getOutputDir();
   const fontName = getFontName();
-  
+  const iconMapPath = getIconMapPath();
+
+  // 读取图标映射文件（如果存在）
+  let iconMapping = {};
+  if (iconMapPath && fs.existsSync(iconMapPath)) {
+    try {
+      console.log(`📖 读取图标映射文件: ${iconMapPath}`);
+      const iconMapContent = fs.readFileSync(iconMapPath, "utf8");
+      iconMapping = JSON.parse(iconMapContent);
+      console.log(`✅ 成功加载 ${Object.keys(iconMapping).length} 个图标映射`);
+    } catch (error) {
+      console.error(`❌ 读取图标映射文件失败: ${error.message}`);
+      console.log("⚠️  将使用默认的Unicode分配");
+    }
+  } else if (iconMapPath) {
+    console.log(`⚠️  图标映射文件不存在: ${iconMapPath}`);
+    console.log("⚠️  将使用默认的Unicode分配");
+  }
+
   const result = await webfont({
     files: inputPattern,
     fontName: fontName,
-    formats: ['ttf'],
-    fontHeight: 1024,         // 标准字体高度
-    descent: 200,             // 增加下沉值改善基线对齐
-    normalize: true,          // 标准化图标尺寸
-    round: 10e12,            // 更高精度的舍入
+    formats: ["ttf"],
+    glyphTransformFn(glyph) {
+      // 如果图标映射文件存在，尝试匹配并替换unicode
+      if (
+        Object.keys(iconMapping).length > 0 &&
+        glyph &&
+        glyph.name
+      ) {
+        const iconName = glyph.name;
+        console.log(`🔍 检查图标: "${iconName}"`);
+        // console.log(`📋 可用映射: ${Object.keys(iconMapping).join(", ")}`);
+
+        if (iconMapping[iconName] && iconMapping[iconName].unicode) {
+          const newUnicode = iconMapping[iconName].unicode;
+          console.log(
+            `🔄 替换图标 "${iconName}" 的Unicode: ${glyph.unicode} -> ${newUnicode}`
+          );
+          glyph.unicode = newUnicode;
+        } else {
+          console.log(`❌ 未找到图标 "${iconName}" 的映射`);
+        }
+      } else {
+        console.log(`⚠️  图标缺少元数据或名称:`, glyph);
+      }
+      return glyph;
+    },
+    fontHeight: 1024, // 标准字体高度
+    descent: 200, // 增加下沉值改善基线对齐
+    normalize: true, // 标准化图标尺寸
+    round: 10e12, // 更高精度的舍入
     centerHorizontally: true, // 水平居中
-    fixedWidth: false,        // 禁用固定宽度，保持图标比例
+    fixedWidth: false, // 禁用固定宽度，保持图标比例
     fontWeight: 400,
-    fontStyle: 'normal',
-    metadata: 'Generated icon font', // 添加字体元数据
-    prependUnicode: false,    // 不在文件名前添加Unicode
-    startUnicode: 0xE001,     // 设置起始Unicode码点
-    verbose: true             // 详细输出便于调试
+    fontStyle: "normal",
+    metadata: "Generated icon font", // 添加字体元数据
+    prependUnicode: false, // 不在文件名前添加Unicode
+    startUnicode: 0xe001, // 设置起始Unicode码点
+    verbose: true, // 详细输出便于调试
   });
 
   // 确保输出目录存在
@@ -88,7 +151,7 @@ async function generateFont() {
   }
 
   // 保存字体文件
-  for (const format of ['ttf']) {
+  for (const format of ["ttf"]) {
     if (result[format]) {
       fs.writeFileSync(
         path.join(outputDir, `${fontName}.${format}`),
@@ -98,18 +161,18 @@ async function generateFont() {
   }
 
   // 生成文件名到Unicode point的映射
-  const iconMapping = {};
-  
+  const outputIconMapping = {};
+
   if (result.glyphsData) {
     console.log(`✅ 处理 ${result.glyphsData.length} 个图标的Unicode映射`);
-    result.glyphsData.forEach((glyph, index) => {
+    result.glyphsData.forEach((glyph) => {
       if (glyph && glyph.metadata) {
         const iconName = glyph.metadata.name;
-        
+
         if (iconName) {
           // 添加到映射对象
-          iconMapping[iconName] = {
-            unicode:glyph.metadata.unicode
+          outputIconMapping[iconName] = {
+            unicode: glyph.metadata.unicode,
           };
         }
       }
@@ -118,11 +181,9 @@ async function generateFont() {
 
   // 生成映射JSON文件
   fs.writeFileSync(
-    path.join(outputDir, 'icon-mapping.json'), 
-    JSON.stringify(iconMapping, null, 2)
+    path.join(outputDir, "icon-mapping.json"),
+    JSON.stringify(outputIconMapping, null, 2)
   );
-
 }
 
 generateFont().catch(console.error);
-

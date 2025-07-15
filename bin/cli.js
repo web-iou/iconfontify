@@ -41,6 +41,7 @@ if (args.includes('--help') || args.includes('-h') && args.length === 1) {
   -i <目录>     指定输入目录 (默认: icon)
   -o <目录>     指定输出目录 (默认: build/iconfont)  
   -n <名称>     指定字体名称 (默认: iconfont)
+  --iconmap <文件> 指定图标映射JSON文件路径 (默认: 使用-o目录下的icon-mapping.json)
   -h            生成HTML+CSS预览文件
   --node        强制使用Node.js版本（Windows推荐）
   --help        显示此帮助信息
@@ -51,6 +52,7 @@ if (args.includes('--help') || args.includes('-h') && args.length === 1) {
   npx iconfontify -i svg -o dist      # 自定义目录
   npx iconfontify -n myicons          # 自定义字体名称
   npx iconfontify -i svg -n myicons -h # 自定义目录、名称并生成预览
+  npx iconfontify --iconmap icons.json # 使用指定的图标映射文件
   npx iconfontify --node              # 使用Node.js版本
 
 环境要求:
