@@ -273,14 +273,6 @@ function updateScriptPaths() {
     process.env.ICONFONTIFY_FONT_NAME = FONT_NAME;
     process.env.ICONFONTIFY_CWD = process.cwd();
     process.env.ICONFONTIFY_PACKAGE_ROOT = packageRoot;
-    
-    // 设置图标映射文件路径
-    if (ICON_MAP_PATH) {
-        process.env.ICONFONTIFY_ICON_MAP_PATH = ICON_MAP_PATH;
-    } else {
-        // 默认使用输出目录下的 icon-mapping.json
-        process.env.ICONFONTIFY_ICON_MAP_PATH = path.join(OUTPUT_DIR, 'icon-mapping.json');
-    }
 }
 
 // 恢复脚本
@@ -291,7 +283,6 @@ function restoreScripts() {
     delete process.env.ICONFONTIFY_FONT_NAME;
     delete process.env.ICONFONTIFY_CWD;
     delete process.env.ICONFONTIFY_PACKAGE_ROOT;
-    delete process.env.ICONFONTIFY_ICON_MAP_PATH;
 }
 
 // 执行Node.js脚本

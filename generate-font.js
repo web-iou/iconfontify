@@ -72,65 +72,39 @@ function getFontName() {
 }
 
 // 获取图标映射文件路径 - 优先使用环境变量，然后使用默认值
-function getIconMapPath() {
-  if (process.env.ICONFONTIFY_ICON_MAP_PATH) {
-    const cwd = process.env.ICONFONTIFY_CWD || process.cwd();
-    return path.join(cwd, process.env.ICONFONTIFY_ICON_MAP_PATH);
-  }
-  return null;
-}
+// function getIconMapPath() {
+//   if (process.env.ICONFONTIFY_ICON_MAP_PATH) {
+//     const cwd = process.env.ICONFONTIFY_CWD || process.cwd();
+//     return path.join(cwd, process.env.ICONFONTIFY_ICON_MAP_PATH);
+//   }
+//   return null;
+// }
 async function generateFont() {
   const inputPattern = getInputPattern();
   const outputDir = getOutputDir();
   const fontName = getFontName();
-  const iconMapPath = getIconMapPath();
+  // const iconMapPath = getIconMapPath();
 
   // 读取图标映射文件（如果存在）
-  let iconMapping = {};
-  if (iconMapPath && fs.existsSync(iconMapPath)) {
-    try {
-      console.log(`📖 读取图标映射文件: ${iconMapPath}`);
-      const iconMapContent = fs.readFileSync(iconMapPath, "utf8");
-      iconMapping = JSON.parse(iconMapContent);
-      console.log(`✅ 成功加载 ${Object.keys(iconMapping).length} 个图标映射`);
-    } catch (error) {
-      console.error(`❌ 读取图标映射文件失败: ${error.message}`);
-      console.log("⚠️  将使用默认的Unicode分配");
-    }
-  } else if (iconMapPath) {
-    console.log(`⚠️  图标映射文件不存在: ${iconMapPath}`);
-    console.log("⚠️  将使用默认的Unicode分配");
-  }
+  // if (iconMapPath && fs.existsSync(iconMapPath)) {
+  //   try {
+  //     console.log(`📖 读取图标映射文件: ${iconMapPath}`);
+  //     const iconMapContent = fs.readFileSync(iconMapPath, "utf8");
+  //     iconMapping = JSON.parse(iconMapContent);
+  //     console.log(`✅ 成功加载 ${Object.keys(iconMapping).length} 个图标映射`);
+  //   } catch (error) {
+  //     console.error(`❌ 读取图标映射文件失败: ${error.message}`);
+  //     console.log("⚠️  将使用默认的Unicode分配");
+  //   }
+  // } else if (iconMapPath) {
+  //   console.log(`⚠️  图标映射文件不存在: ${iconMapPath}`);
+  //   console.log("⚠️  将使用默认的Unicode分配");
+  // }
 
   const result = await webfont({
     files: inputPattern,
     fontName: fontName,
     formats: ["ttf"],
-    glyphTransformFn(glyph) {
-      // 如果图标映射文件存在，尝试匹配并替换unicode
-      if (
-        Object.keys(iconMapping).length > 0 &&
-        glyph &&
-        glyph.name
-      ) {
-        const iconName = glyph.name;
-        console.log(`🔍 检查图标: "${iconName}"`);
-        // console.log(`📋 可用映射: ${Object.keys(iconMapping).join(", ")}`);
-
-        if (iconMapping[iconName] && iconMapping[iconName].unicode) {
-          const newUnicode = iconMapping[iconName].unicode;
-          console.log(
-            `🔄 替换图标 "${iconName}" 的Unicode: ${glyph.unicode} -> ${newUnicode}`
-          );
-          glyph.unicode = newUnicode;
-        } else {
-          console.log(`❌ 未找到图标 "${iconName}" 的映射`);
-        }
-      } else {
-        console.log(`⚠️  图标缺少元数据或名称:`, glyph);
-      }
-      return glyph;
-    },
     fontHeight: 1024, // 标准字体高度
     descent: 200, // 增加下沉值改善基线对齐
     normalize: true, // 标准化图标尺寸
