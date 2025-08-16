@@ -107,64 +107,10 @@ async function cleanSVGIcons() {
         // 使用SVGO优化SVG
         const result = optimize(svgContent, svgoConfig);
 
-        // 手动移除剩余的背景路径和填充色
-        let cleanedSVG = result.data;
-
-        // 移除clipPath定义
-        cleanedSVG = cleanedSVG.replace(/<defs>.*?<\/defs>/gs, "");
-
-        // 移除clip-path属性
-        cleanedSVG = cleanedSVG.replace(/clip-path="[^"]*"/g, "");
-
-        // 移除透明的白色背景路径
-        cleanedSVG = cleanedSVG.replace(
-          /<path[^>]*fill="#fff"[^>]*fill-opacity="0"[^>]*\/>/g,
-          ""
-        );
-        cleanedSVG = cleanedSVG.replace(
-          /<path[^>]*fill-opacity="0"[^>]*fill="#fff"[^>]*\/>/g,
-          ""
-        );
-
-        // 移除空的组标签
-        cleanedSVG = cleanedSVG.replace(/<g[^>]*>\s*<\/g>/g, "");
-        cleanedSVG = cleanedSVG.replace(/<g[^>]*clip-path[^>]*>/g, "<g>");
-
-        // 移除所有fill属性，让字体生成器处理颜色
-        cleanedSVG = cleanedSVG.replace(/\s+fill="[^"]*"/g, "");
-
-        // 确保SVG有正确的结构 - 添加currentColor（仅在路径没有填充时）
-        if (!cleanedSVG.includes("fill=")) {
-          cleanedSVG = cleanedSVG.replace(
-            /<path/g,
-            '<path fill="currentColor"'
-          );
-        }
-
-        // 保持viewBox的精确度，确保比例正确
-        const viewBoxMatch = cleanedSVG.match(/viewBox="([^"]+)"/);
-        if (viewBoxMatch) {
-          const viewBoxValues = viewBoxMatch[1]
-            .split(" ")
-            .map((v) => {
-              const num = parseFloat(v);
-              return Number.isInteger(num) ? num.toString() : num.toFixed(3);
-            })
-            .join(" ");
-          cleanedSVG = cleanedSVG.replace(
-            /viewBox="[^"]+"/,
-            `viewBox="${viewBoxValues}"`
-          );
-        }
-
-        // 清理多余的空白字符，但保持格式化
-        cleanedSVG = cleanedSVG
-          .replace(/>\s+</g, "><")
-          .replace(/\s+/g, " ")
-          .trim();
-
         // 写入清理后的文件
-        fs.writeFileSync(filePath, cleanedSVG);
+        fs.writeFileSync(filePath, result
+          .data
+        );
         console.log(`✓ 已清理: ${file}`);
       } catch (error) {
         console.error(`✗ 清理失败 ${file}:`, error.message);
