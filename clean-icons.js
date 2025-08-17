@@ -59,7 +59,7 @@ const svgoConfig = {
       fn: () => ({
         element: {
           enter: (node, parentNode) => {
-            if (['rect','mask'].includes(node.name)) {
+            if (node.name === "rect") {
               const index = parentNode.children.indexOf(node);
               if (index > -1) {
                 parentNode.children.splice(index, 1); // ❌ 移除 rect 节点
@@ -68,6 +68,23 @@ const svgoConfig = {
           },
         },
       }),
+    },
+    {
+      name: "remove-masks",
+      fn() {
+        return {
+          element: {
+            enter: (node,parentNode) => {
+              if (node.name === "mask") {
+                const index = parentNode.children.indexOf(node);
+                if (index > -1) {
+                  parentNode.children.splice(index, 1); // ❌ 移除 rect 节点
+                }
+              }
+            },
+          },
+        };
+      },
     },
     // 移除所有填充属性，让图标变为纯轮廓
     {
@@ -108,9 +125,7 @@ async function cleanSVGIcons() {
         const result = optimize(svgContent, svgoConfig);
 
         // 写入清理后的文件
-        fs.writeFileSync(filePath, result
-          .data
-        );
+        fs.writeFileSync(filePath, result.data);
         console.log(`✓ 已清理: ${file}`);
       } catch (error) {
         console.error(`✗ 清理失败 ${file}:`, error.message);
