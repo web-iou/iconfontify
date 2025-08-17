@@ -59,7 +59,7 @@ const svgoConfig = {
       fn: () => ({
         element: {
           enter: (node, parentNode) => {
-            if (node.name === "rect") {
+            if (['rect','mask'].includes(node.name)) {
               const index = parentNode.children.indexOf(node);
               if (index > -1) {
                 parentNode.children.splice(index, 1); // ❌ 移除 rect 节点
